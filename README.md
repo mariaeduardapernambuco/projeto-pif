@@ -5,9 +5,9 @@
 
 | Nome                      | GitHub                                                   |
 |----------------------------|----------------------------------------------------------|
-| Dayanne Cristina Moraes      | [@dcmi](https://github.com/dayannemoraes)                      |
-| Ewerton Monteiro de Lima    | [@emlb](https://github.ewertonmonteiroo)                      |
-| Maria Eduarda Pernambuco    | [@mepsl](https://github.com/mariaeduardapernambuco)      |
+| Dayanne Cristina Moraes      | [@dayanne](https://github.com/dayannemoraes)                      |
+| Ewerton Monteiro de Lima    | [@ewerton](https://github.ewertonmonteiroo)                      |
+| Maria Eduarda Pernambuco    | [@eduarda](https://github.com/mariaeduardapernambuco)      |
 
 ## 📚 **Disciplina**
 **Programação Imperativa e Funcional - 2024.2**
