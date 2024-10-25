@@ -27,7 +27,6 @@ Este projeto, desenvolvido para a disciplina **Programação Imperativa e Funcio
 - Organizar o código em uma estrutura modular utilizando a CLI-lib.
 
 ---
-<p align="center"> Desenvolvido com ❤️ por <a href="https://github.com/mariaeduardapernambuco">@mepsl</a>, <a href="https://github.com/ewertonmonteiroo">@emlb</a>, <a href="https://github.com/dayannemoraes">@dcmi</a> </p>
 
 📬 Contatos
 
@@ -35,6 +34,8 @@ Dayane Cristina Moraes: <a href="mailto:dcmi@cesar.school">dcmi@cesar.school</a>
 Ewerton Monteiro de Lima: <a href="mailto:emlb@cesar.school">emlb@cesar.school</a>
 Maria Eduarda Pernambuco: <a href="mailto:mepsl@cesar.school">mepsl@cesar.school</a>
 
+---
+<p align="center"> Desenvolvido com ❤️ por <a href="https://github.com/mariaeduardapernambuco">@mepsl</a>, <a href="https://github.com/ewertonmonteiroo">@emlb</a>, <a href="https://github.com/dayannemoraes">@dcmi</a> </p>
 ---
 
 ## 📂 **Estrutura do Repositório**
