@@ -1,88 +1,169 @@
-/**
- * main.h
- * Created on Aug, 23th 2023
- * Author: Tiago Barros
- * Based on "From C to C++ course - 2002"
-*/
-
-#include <string.h>
-
-#include "screen.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 #include "keyboard.h"
+#include "screen.h"
 #include "timer.h"
 
-int x = 34, y = 12;
-int incX = 1, incY = 1;
+#define MAX_SNAKE_LENGTH 100
 
-void printHello(int nextX, int nextY)
-{
-    screenSetColor(CYAN, DARKGRAY);
-    screenGotoxy(x, y);
-    printf("           ");
-    x = nextX;
-    y = nextY;
-    screenGotoxy(x, y);
-    printf("Hello World");
-}
+typedef struct {
+    int x, y;
+} Point;
 
-void printKey(int ch)
-{
-    screenSetColor(YELLOW, DARKGRAY);
-    screenGotoxy(35, 22);
-    printf("Key code :");
+typedef enum {
+    UP, DOWN, LEFT, RIGHT
+} Direction;
 
-    screenGotoxy(34, 23);
-    printf("            ");
-    
-    if (ch == 27) screenGotoxy(36, 23);
-    else screenGotoxy(39, 23);
+Point snake[MAX_SNAKE_LENGTH];
+int snake_length;
+Direction dir;
+Point food;
+int game_over = 0;
 
-    printf("%d ", ch);
-    while (keyhit())
-    {
-        printf("%d ", readch());
-    }
-}
-
-int main() 
-{
-    static int ch = 0;
-
+void init_game() {
     screenInit(1);
     keyboardInit();
-    timerInit(50);
+    srand(time(NULL));
 
-    printHello(x, y);
-    screenUpdate();
+    snake_length = 5;
+    int start_x = (MINX + MAXX) / 2;
+    int start_y = (MINY + MAXY) / 2;
+    for (int i = 0; i < snake_length; i++) {
+        snake[i].x = start_x - i;
+        snake[i].y = start_y;
+    }
 
-    while (ch != 10) //enter
-    {
-        // Handle user input
-        if (keyhit()) 
-        {
-            ch = readch();
-            printKey(ch);
-            screenUpdate();
+    dir = RIGHT;
+
+    food.x = rand() % (MAXX - MINX - 2) + MINX + 1;
+    food.y = rand() % (MAXY - MINY - 2) + MINY + 1;
+}
+
+void end_game() {
+    keyboardDestroy();
+    screenDestroy();
+}
+
+void handle_input() {
+    if (keyhit()) {
+        int key = readch();
+        switch (key) {
+            case 'w':
+            case 'W':
+                if (dir != DOWN) dir = UP;
+                break;
+            case 's':
+            case 'S':
+                if (dir != UP) dir = DOWN;
+                break;
+            case 'a':
+            case 'A':
+                if (dir != RIGHT) dir = LEFT;
+                break;
+            case 'd':
+            case 'D':
+                if (dir != LEFT) dir = RIGHT;
+                break;
+            case 'q':
+            case 'Q':
+                game_over = 1;
+                break;
         }
+    }
+}
 
-        // Update game state (move elements, verify collision, etc)
-        if (timerTimeOver() == 1)
-        {
-            int newX = x + incX;
-            if (newX >= (MAXX -strlen("Hello World") -1) || newX <= MINX+1) incX = -incX;
-            int newY = y + incY;
-            if (newY >= MAXY-1 || newY <= MINY+1) incY = -incY;
+void update_snake() {
+    for (int i = snake_length - 1; i > 0; i--) {
+        snake[i] = snake[i - 1];
+    }
 
-            printKey(ch);
-            printHello(newX, newY);
+    switch (dir) {
+        case UP:
+            snake[0].y--;
+            break;
+        case DOWN:
+            snake[0].y++;
+            break;
+        case LEFT:
+            snake[0].x--;
+            break;
+        case RIGHT:
+            snake[0].x++;
+            break;
+    }
 
-            screenUpdate();
+    if (snake[0].x <= MINX || snake[0].x >= MAXX ||
+        snake[0].y <= MINY || snake[0].y >= MAXY) {
+        game_over = 1;
+    }
+
+    for (int i = 1; i < snake_length; i++) {
+        if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
+            game_over = 1;
+            break;
         }
     }
 
-    keyboardDestroy();
-    screenDestroy();
+    if (snake[0].x == food.x && snake[0].y == food.y) {
+        if (snake_length < MAX_SNAKE_LENGTH) {
+            snake[snake_length] = snake[snake_length - 1];
+            snake_length++;
+        }
+        food.x = rand() % (MAXX - MINX - 2) + MINX + 1;
+        food.y = rand() % (MAXY - MINY - 2) + MINY + 1;
+    }
+}
+
+void draw_screen() {
+    screenClear();
+    screenDrawBorders();
+
+    screenGotoxy(food.x, food.y);
+    printf("O");
+
+    for (int i = 0; i < snake_length; i++) {
+        screenGotoxy(snake[i].x, snake[i].y);
+        if (i == 0) {
+            printf("X");
+        } else {
+            printf("o");
+        }
+    }
+
+    fflush(stdout);
+}
+
+int main() {
+    init_game();
+
+    int game_tick = 100;
+    timerInit(game_tick);
+
+    while (!game_over) {
+        handle_input();
+        update_snake();
+        draw_screen();
+
+        while (!timerTimeOver()) {
+            usleep(1000);
+        }
+        timerDestroy();
+        timerInit(game_tick);
+    }
+
+    screenClear();
+    screenGotoxy((MINX + MAXX) / 2 - 5, (MINY + MAXY) / 2);
+    printf("Game Over!");
+    fflush(stdout);
+
+    timerInit(2000);
+    while (!timerTimeOver()) {
+        usleep(1000);
+    }
     timerDestroy();
 
+    end_game();
     return 0;
 }
