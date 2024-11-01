@@ -1,87 +1,37 @@
-/**
- * screen.c
- * Created on Aug, 23th 2023
- * Author: Tiago Barros
- * Based on "From C to C++ course - 2002"
-*/
-
+#include <stdio.h>
+#include <unistd.h>
 #include "screen.h"
 
-void screenDrawBorders() 
-{
-    char hbc = BOX_HLINE;
-    char vbc = BOX_VLINE;
-    
-    screenClear();
-    screenBoxEnable();
-    
-    screenGotoxy(MINX, MINY);
-    printf("%c", BOX_UPLEFT);
-
-    for (int i=MINX+1; i<MAXX; i++)
-    {
-        screenGotoxy(i, MINY);
-        printf("%c", hbc);
+void screenInit(int clear) {
+    if (clear) {
+        printf("\033[H\033[J");
     }
-    screenGotoxy(MAXX, MINY);
-    printf("%c", BOX_UPRIGHT);
+    printf("\033[?25l"); 
+    fflush(stdout);
+}
+// esconde o cursor
 
-    for (int i=MINY+1; i<MAXY; i++)
-    {
-        screenGotoxy(MINX, i);
-        printf("%c", vbc);
-        screenGotoxy(MAXX, i);
-        printf("%c", vbc);
-    }
+void screenDestroy() {
+    printf("\033[?25h"); 
+    fflush(stdout);
+} 
+// mostra o cursor
 
-    screenGotoxy(MINX, MAXY);
-    printf("%c", BOX_DWNLEFT);
-    for (int i=MINX+1; i<MAXX; i++)
-    {
-        screenGotoxy(i, MAXY);
-        printf("%c", hbc);
-    }
-    screenGotoxy(MAXX, MAXY);
-    printf("%c", BOX_DWNRIGHT);
-
-    screenBoxDisable();
-    
+void screenClear() {
+    printf("\033[H\033[J");
 }
 
-void screenInit(int drawBorders)
-{
-    screenClear();
-    if (drawBorders) screenDrawBorders();
-    screenHomeCursor();
-    screenHideCursor();
-}
-
-void screenDestroy()
-{
-    printf("%s[0;39;49m", ESC); // Reset colors
-    screenSetNormal();
-    screenClear();
-    screenHomeCursor();
-    screenShowCursor();
-}
-
-void screenGotoxy(int x, int y)
-{
-    x = ( x<0 ? 0 : x>=MAXX ? MAXX-1 : x);
-    y = ( y<0 ? 0 : y>MAXY ? MAXY : y);
-    
-    printf("%s[f%s[%dB%s[%dC", ESC, ESC, y, ESC, x);
-}
-
-void screenSetColor( screenColor fg, screenColor bg)
-{
-    char atr[] = "[0;";
-
-    if ( fg > LIGHTGRAY )
-    {
-        atr[1] = '1';
-		fg -= 8;
+void screenDrawBorders() {
+    for (int x = MINX; x <= MAXX; x++) {
+        printf("\033[%d;%dH#", MINY, x);
+        printf("\033[%d;%dH#", MAXY, x);
     }
+    for (int y = MINY; y <= MAXY; y++) {
+        printf("\033[%d;%dH#", y, MINX);
+        printf("\033[%d;%dH#", y, MAXX);
+    }
+}
 
-    printf("%s%s%d;%dm", ESC, atr, fg+30, bg+40);
+void screenGotoxy(int x, int y) {
+    printf("\033[%d;%dH", y, x);
 }
