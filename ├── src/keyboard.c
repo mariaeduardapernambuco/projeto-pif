@@ -1,68 +1,43 @@
-/**
- * keyboard.h
- * Created on Aug, 23th 2023
- * Author: Tiago Barros
- * Based on "From C to C++ course - 2002"
-*/
-
+#include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
-
 #include "keyboard.h"
 
-static struct termios initialSettings, newSettings;
-static int peekCharacter;
+static struct termios oldt, newt;
 
-
-void keyboardInit()
-{
-    tcgetattr(0,&initialSettings);
-    newSettings = initialSettings;
-    newSettings.c_lflag &= ~ICANON;
-    newSettings.c_lflag &= ~ECHO;
-    newSettings.c_lflag &= ~ISIG;
-    newSettings.c_cc[VMIN] = 1;
-    newSettings.c_cc[VTIME] = 0;
-    tcsetattr(0, TCSANOW, &newSettings);
+void keyboardInit() {
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 }
 
-void keyboardDestroy()
-{
-    tcsetattr(0, TCSANOW, &initialSettings);
+void keyboardDestroy() {
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 }
 
-int keyhit()
-{
-    unsigned char ch;
-    int nread;
+int keyhit() {
+    struct termios oldt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    struct termios newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    int oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
 
-    if (peekCharacter != -1) return 1;
+    int ch = getchar();
     
-    newSettings.c_cc[VMIN]=0;
-    tcsetattr(0, TCSANOW, &newSettings);
-    nread = read(0,&ch,1);
-    newSettings.c_cc[VMIN]=1;
-    tcsetattr(0, TCSANOW, &newSettings);
-    
-    if(nread == 1) 
-    {
-        peekCharacter = ch;
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    if(ch != EOF) {
+        ungetc(ch, stdin);
         return 1;
     }
-    
+
     return 0;
 }
 
-int readch()
-{
-    char ch;
-
-    if(peekCharacter != -1)
-    {
-        ch = peekCharacter;
-        peekCharacter = -1;
-        return ch;
-    }
-    read(0,&ch,1);
-    return ch;
+int readch() {
+    return getchar();
 }
